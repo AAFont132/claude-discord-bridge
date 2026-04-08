@@ -53,4 +53,18 @@ function sendKeys(text) {
   }
 }
 
-module.exports = { sessionExists, capturePane, sendKeys };
+// Run a read-only git command in the given directory and return stdout
+function runGitCommand(args, cwd) {
+  try {
+    return execSync(`git ${args}`, {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+      timeout: 5000,
+      cwd,
+    }).trim();
+  } catch (err) {
+    return `Error: ${err.message}`;
+  }
+}
+
+module.exports = { sessionExists, capturePane, sendKeys, runGitCommand };

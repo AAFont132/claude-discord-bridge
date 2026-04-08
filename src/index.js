@@ -55,6 +55,17 @@ function handleReply(text) {
     return;
   }
 
+  // Git shortcut commands — safe read-only repo queries
+  const gitCommands = { gitstatus: "status", gitlog: "log --oneline -5" };
+  if (gitCommands[text]) {
+    const cwd = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+    const output = tmux.runGitCommand(gitCommands[text], cwd);
+    const msg = `\ud83d\udcca **git ${gitCommands[text]}**\n\`\`\`\n${output}\n\`\`\``;
+    discord.sendMessage(msg).catch(() => {});
+    console.log(`[bridge] Sent ${text} result to Discord`);
+    return;
+  }
+
   if (pendingPermission) {
     // There's a permission prompt waiting — interpret the reply as allow/deny
     const { resolve, hook } = pendingPermission;
