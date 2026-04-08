@@ -82,7 +82,15 @@ function handleReply(text) {
       },
     });
   } else {
-    // No pending permission — send the text to Claude's terminal via tmux
+    // No pending permission — do not blindly inject short numeric replies into tmux
+    if (/^[123]$/.test(text)) {
+      console.log(`[bridge] Ignored stray numeric reply with no pending prompt: ${text}`);
+      discord
+        .sendMessage("No pending bridge prompt right now.")
+        .catch(() => {});
+      return;
+    }
+
     const sent = tmux.sendKeys(text);
     if (sent) {
       console.log(`[bridge] Sent to tmux: ${text}`);
@@ -94,7 +102,6 @@ function handleReply(text) {
     }
   }
 }
-
 // --- Main ---
 
 async function main() {
