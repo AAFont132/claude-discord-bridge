@@ -11,6 +11,7 @@ A local tool that bridges Claude Code's terminal prompts to Discord, so you can 
 5. You reply on Discord from your phone
 6. For permission prompts: the bot returns your allow/deny decision to Claude Code via the hook response
 7. For questions and instructions: the bot types your reply into Claude's tmux session
+8. You can also send `status` in Discord to get the current visible Claude screen without sending anything into tmux
 
 ```
 Claude Code ─── hook ──→ bridge.sh ──→ HTTP server ──→ Discord bot ──→ Discord channel
@@ -174,7 +175,15 @@ When Claude asks a question with numbered options, reply with the matching numbe
 
 ### Idle notifications
 
-When Claude finishes a task, you'll see a summary. Reply with your next instruction, or ignore it.
+When Claude finishes a task or pauses waiting for input, you'll see a summary plus terminal context from the current Claude screen. This helps with follow-up questions that appear in the terminal but are not permission prompts. Reply with your next instruction, or ignore it.
+
+### Status command
+
+Send this exact message in Discord:
+
+- `status`
+
+The bot will capture the current tmux pane and reply with the current visible Claude screen without sending `status` into Claude's terminal.
 
 ## V1 features
 
@@ -184,6 +193,10 @@ When Claude finishes a task, you'll see a summary. Reply with your next instruct
 - Numbered choice support
 - Free-text replies sent to Claude's terminal
 - Recommended action summaries in plain English
+- Idle/task-complete messages include terminal context from the current Claude screen
+- Terminal context favors the most recent visible output
+- Exact `status` command in Discord returns the current visible Claude screen on demand
+- Stray numeric replies like `1`, `2`, or `3` are blocked when no bridge prompt is pending
 - Copy-friendly formatting (code blocks)
 - Fail-closed: timeouts and failures default to deny/wait
 - Single authorized user only
@@ -222,5 +235,7 @@ When Claude finishes a task, you'll see a summary. Reply with your next instruct
 **Hook doesn't fire** — Check that `settings.json` has the correct path to `bridge.sh` and that the file is executable (`chmod +x hooks/bridge.sh`).
 
 **Permission always denied** — Make sure the bridge is running (`npm start`) before the hook fires. Check that `BRIDGE_PORT` matches in both `.env` and the hook script's environment.
+
+**I replied `1`, `2`, or `3` in Discord and nothing happened** — If there is no pending permission/question prompt, the bot will not inject stray numeric replies into Claude. Wait for a new bridge prompt, or send `status` to see the current screen.
 
 **"Not authorized" in Discord** — Only the user matching `DISCORD_USER_ID` can respond. Check the ID.
