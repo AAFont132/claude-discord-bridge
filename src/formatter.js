@@ -29,7 +29,7 @@ function formatPermissionPrompt(hookData, terminal) {
     terminalBlock,
     `\n\ud83d\udca1 **Recommended:** ${rec}\n`,
     `**Reply with:**`,
-    `\`1\` \u2192 Approve  \u00b7  \`2\` \u2192 Deny`,
+    `\`1\` \u2192 Allow once  \u00b7  \`2\` \u2192 Always allow  \u00b7  \`3\` \u2192 Deny`,
     `Or type feedback (denies + sends your reason to Claude)`,
   ]
     .filter(Boolean)

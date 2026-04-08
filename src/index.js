@@ -44,14 +44,26 @@ let pendingPermission = null;
 function handleReply(text) {
   if (pendingPermission) {
     // There's a permission prompt waiting — interpret the reply as allow/deny
-    const { resolve } = pendingPermission;
+    const { resolve, hook } = pendingPermission;
     pendingPermission = null;
 
     let decision;
     if (text === "1" || /^y(es)?$/i.test(text)) {
       decision = { behavior: "allow" };
-      console.log("[bridge] Permission APPROVED via Discord");
-    } else if (text === "2" || /^n(o)?$/i.test(text)) {
+      console.log("[bridge] Permission APPROVED (once) via Discord");
+    } else if (text === "2" || /^a(lways)?$/i.test(text)) {
+      const toolName = hook?.tool_name || "Bash";
+      decision = {
+        behavior: "allow",
+        updatedPermissions: [{
+          type: "addRules",
+          rules: [{ toolName, ruleContent: "*" }],
+          behavior: "allow",
+          destination: "session",
+        }],
+      };
+      console.log(`[bridge] Permission APPROVED (always, session) for ${toolName} via Discord`);
+    } else if (text === "3" || /^n(o)?$/i.test(text)) {
       decision = { behavior: "deny", reason: "Denied via Discord" };
       console.log("[bridge] Permission DENIED via Discord");
     } else {
@@ -96,7 +108,7 @@ async function main() {
       await discord.sendMessage(msg);
 
       return new Promise((resolve) => {
-        const thisRequest = { resolve };
+        const thisRequest = { resolve, hook };
         pendingPermission = thisRequest;
 
         // Auto-deny on timeout
