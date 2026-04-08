@@ -116,10 +116,13 @@ function formatTerminal(terminal) {
 }
 
 // Format an on-demand status snapshot for Discord
-function formatStatus(terminal) {
+function formatStatus(terminal, pendingType) {
+  const hasPending = pendingType && pendingType !== "none";
   const terminalBlock = formatTerminal(terminal);
   return [
     `\ud83d\udcfa **Claude status**`,
+    `**Pending bridge prompt:** ${hasPending ? "yes" : "no"}`,
+    `**Pending type:** ${pendingType || "none"}`,
     terminalBlock || "No terminal content available.",
   ]
     .filter(Boolean)

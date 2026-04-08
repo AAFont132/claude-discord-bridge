@@ -45,6 +45,16 @@ const STOP_DEDUPE_WINDOW_MS = 30000;
 // --- Discord reply handler ---
 
 function handleReply(text) {
+  // On-demand status check — always handled, even during pending permission
+  if (text === "status") {
+    const pane = tmux.capturePane();
+    const pending = pendingPermission ? "permission" : "none";
+    const msg = formatStatus(pane, pending);
+    discord.sendMessage(msg).catch(() => {});
+    console.log("[bridge] Sent on-demand status to Discord");
+    return;
+  }
+
   if (pendingPermission) {
     // There's a permission prompt waiting — interpret the reply as allow/deny
     const { resolve, hook } = pendingPermission;
@@ -91,15 +101,6 @@ function handleReply(text) {
       },
     });
   } else {
-    // On-demand status check — intercept before tmux injection
-    if (text === "status") {
-      const pane = tmux.capturePane();
-      const msg = formatStatus(pane);
-      discord.sendMessage(msg).catch(() => {});
-      console.log("[bridge] Sent on-demand status to Discord");
-      return;
-    }
-
     // No pending permission — do not blindly inject short numeric replies into tmux
     if (/^[123]$/.test(text)) {
       console.log(`[bridge] Ignored stray numeric reply with no pending prompt: ${text}`);
