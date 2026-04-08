@@ -38,6 +38,9 @@ function validateConfig() {
 // --- Pending permission state (one at a time) ---
 
 let pendingPermission = null;
+let lastStopMessage = null;
+let lastStopAt = 0;
+const STOP_DEDUPE_WINDOW_MS = 30000;
 
 // --- Discord reply handler ---
 
@@ -144,6 +147,19 @@ async function main() {
     // Task complete / idle: notify Discord
     onStop: async (hook) => {
       const msg = formatIdle(hook);
+      const now = Date.now();
+
+      if (
+        lastStopMessage === msg &&
+        now - lastStopAt < STOP_DEDUPE_WINDOW_MS
+      ) {
+        console.log("[bridge] Skipping duplicate Stop notification");
+        return;
+      }
+
+      lastStopMessage = msg;
+      lastStopAt = now;
+
       await discord.sendMessage(msg);
     },
   });
