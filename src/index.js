@@ -86,7 +86,7 @@ function handleReply(text) {
     if (/^[123]$/.test(text)) {
       console.log(`[bridge] Ignored stray numeric reply with no pending prompt: ${text}`);
       discord
-        .sendMessage("No pending bridge prompt right now.")
+        .sendMessage("No pending bridge prompt right now. Wait for a new permission or question card from Claude, then reply there.")
         .catch(() => {});
       return;
     }
