@@ -177,13 +177,13 @@ When Claude asks a question with numbered options, reply with the matching numbe
 
 When Claude finishes a task or pauses waiting for input, you'll see a summary plus terminal context from the current Claude screen. This helps with follow-up questions that appear in the terminal but are not permission prompts. Reply with your next instruction, or ignore it.
 
-### Status command
+### Status and repo commands
 
-Send this exact message in Discord:
+Send these exact messages in Discord:
 
-- `status`
-
-The bot will capture the current tmux pane and reply with the current visible Claude screen without sending `status` into Claude's terminal.
+- `status` — returns the current visible Claude screen without sending anything into Claude's terminal
+- `gitstatus` — returns `git status` for the current repo without sending anything into Claude's terminal
+- `gitlog` — returns `git log --oneline -5` for the current repo without sending anything into Claude's terminal
 
 ## V1 features
 
@@ -196,6 +196,7 @@ The bot will capture the current tmux pane and reply with the current visible Cl
 - Idle/task-complete messages include terminal context from the current Claude screen
 - Terminal context favors the most recent visible output
 - Exact `status` command in Discord returns the current visible Claude screen on demand
+- Exact `gitstatus` and `gitlog` commands in Discord return safe repo status output on demand
 - Stray numeric replies like `1`, `2`, or `3` are blocked when no bridge prompt is pending
 - Copy-friendly formatting (code blocks)
 - Fail-closed: timeouts and failures default to deny/wait
@@ -235,6 +236,8 @@ The bot will capture the current tmux pane and reply with the current visible Cl
 **Hook doesn't fire** — Check that `settings.json` has the correct path to `bridge.sh` and that the file is executable (`chmod +x hooks/bridge.sh`).
 
 **Permission always denied** — Make sure the bridge is running (`npm start`) before the hook fires. Check that `BRIDGE_PORT` matches in both `.env` and the hook script's environment.
+
+**`gitstatus` or `gitlog` still triggers Claude instead of returning output in Discord** — Restart the bridge after pulling or editing bridge code. New Discord command shortcuts are not live until the running bridge process is restarted.
 
 **I replied `1`, `2`, or `3` in Discord and nothing happened** — If there is no pending permission/question prompt, the bot will not inject stray numeric replies into Claude. Wait for a new bridge prompt, or send `status` to see the current screen.
 
