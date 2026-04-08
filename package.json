@@ -1,0 +1,14 @@
+{
+  "name": "claude-discord-bridge",
+  "version": "1.0.0",
+  "description": "Discord bridge for remote Claude Code workflow — approve tools, answer questions, and send instructions from your phone",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0"
+  }
+}
