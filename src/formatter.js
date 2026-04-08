@@ -64,12 +64,13 @@ function formatQuestion(hookData, terminal) {
 }
 
 // Format an idle/task-complete notification for Discord
-function formatIdle(hookData) {
+function formatIdle(hookData, terminal) {
   const project = projectName(hookData.cwd);
   const message = hookData.assistant_message || "";
 
   // Truncate Claude's last response to a readable summary
   const summary = truncate(message, 600);
+  const terminalBlock = formatTerminal(terminal);
 
   return [
     `\u2705 **Claude is idle**`,
@@ -77,6 +78,7 @@ function formatIdle(hookData) {
     summary
       ? `**Last response:**\n\`\`\`\n${summary}\n\`\`\``
       : "Claude finished and is waiting for input.",
+    terminalBlock,
     `\nReply with your next instruction, or ignore until you\u2019re back.`,
   ]
     .filter(Boolean)
@@ -98,13 +100,30 @@ function truncate(text, maxLen) {
 
 function formatTerminal(terminal) {
   if (!terminal) return "";
-  // Keep the last 30 lines to stay within Discord's message limits
+  const MAX_CHARS = 1200;
   const lines = terminal.split("\n");
-  const trimmed =
-    lines.length > 30
-      ? lines.slice(-30).join("\n")
-      : terminal;
-  return `\n**Terminal context:**\n\`\`\`\n${truncate(trimmed, 800)}\n\`\`\``;
+  const kept = [];
+  let total = 0;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const added = (kept.length > 0 ? 1 : 0) + lines[i].length; // 1 for "\n" separator
+    if (total + added > MAX_CHARS) break;
+    kept.push(lines[i]);
+    total += added;
+  }
+  kept.reverse();
+  const trimmed = kept.join("\n");
+  return `\n**Terminal context:**\n\`\`\`\n${trimmed}\n\`\`\``;
 }
 
-module.exports = { formatPermissionPrompt, formatQuestion, formatIdle };
+// Format an on-demand status snapshot for Discord
+function formatStatus(terminal) {
+  const terminalBlock = formatTerminal(terminal);
+  return [
+    `\ud83d\udcfa **Claude status**`,
+    terminalBlock || "No terminal content available.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+module.exports = { formatPermissionPrompt, formatQuestion, formatIdle, formatStatus };

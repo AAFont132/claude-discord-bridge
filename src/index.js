@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const { createServer } = require("./server");
 const discord = require("./discord");
-const { formatPermissionPrompt, formatQuestion, formatIdle } = require("./formatter");
+const { formatPermissionPrompt, formatQuestion, formatIdle, formatStatus } = require("./formatter");
 const tmux = require("./tmux");
 
 // --- Configuration ---
@@ -56,11 +56,20 @@ function handleReply(text) {
       console.log("[bridge] Permission APPROVED (once) via Discord");
     } else if (text === "2" || /^a(lways)?$/i.test(text)) {
       const toolName = hook?.tool_name || "Bash";
+      const input = hook?.tool_input || {};
+      let ruleContent = "*";
+
+      if (toolName === "Bash" && input.command) {
+        ruleContent = input.command;
+      } else if ((toolName === "Read" || toolName === "Edit" || toolName === "Write") && input.file_path) {
+        ruleContent = input.file_path;
+      }
+
       decision = {
         behavior: "allow",
         updatedPermissions: [{
           type: "addRules",
-          rules: [{ toolName, ruleContent: "*" }],
+          rules: [{ toolName, ruleContent }],
           behavior: "allow",
           destination: "session",
         }],
@@ -82,6 +91,15 @@ function handleReply(text) {
       },
     });
   } else {
+    // On-demand status check — intercept before tmux injection
+    if (text === "status") {
+      const pane = tmux.capturePane();
+      const msg = formatStatus(pane);
+      discord.sendMessage(msg).catch(() => {});
+      console.log("[bridge] Sent on-demand status to Discord");
+      return;
+    }
+
     // No pending permission — do not blindly inject short numeric replies into tmux
     if (/^[123]$/.test(text)) {
       console.log(`[bridge] Ignored stray numeric reply with no pending prompt: ${text}`);
@@ -152,8 +170,8 @@ async function main() {
     },
 
     // Task complete / idle: notify Discord
-    onStop: async (hook) => {
-      const msg = formatIdle(hook);
+    onStop: async (hook, terminal) => {
+      const msg = formatIdle(hook, terminal);
       const now = Date.now();
 
       if (
