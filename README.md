@@ -147,6 +147,8 @@ You should see:
 
 And in Discord, the bot posts: **Bridge online**
 
+> **Important:** Restart the bridge after changing bridge code. Otherwise Discord may still show old behavior from the previously running Node process.
+
 ## Responding from Discord
 
 ### Permission prompts
@@ -159,13 +161,16 @@ When Claude needs tool approval, you'll see a message like:
 > **Recommended:** Pushes code to the remote repo. Approve if you've verified the changes.
 
 Reply with:
-- `1` or `y` — approve
-- `2` or `n` — deny
+- `1` — allow once
+- `2` — allow once and add a session-scoped allow rule for future matching requests
+- `3` — deny
 - Any other text — deny with your text as the reason sent to Claude
+
+> **Note:** The “always allow” option is session-scoped for the current Claude/tmux run. It allows the current request and adds a temporary allow rule for later matching requests in that session. It is not a permanent global allow.
 
 ### Questions
 
-When Claude asks a question with numbered options, reply with the number or type your answer.
+When Claude asks a question with numbered options, reply with the matching number or type your answer.
 
 ### Idle notifications
 
@@ -173,7 +178,7 @@ When Claude finishes a task, you'll see a summary. Reply with your next instruct
 
 ## V1 features
 
-- Permission prompt relay with approve/deny from Discord
+- Permission prompt relay with allow once / session-scoped allow / deny from Discord
 - Question and plan-review relay
 - Idle/task-complete notifications with response summary
 - Numbered choice support
