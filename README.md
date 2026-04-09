@@ -163,7 +163,7 @@ When Claude needs tool approval, you'll see a message like:
 
 Reply with:
 - `1` — allow once
-- `2` — allow once and add a session-scoped allow rule for future matching requests
+- `2` — allow once and add a session-scoped allow rule for future matching requests (for Write/Edit/Read, the rule is scoped to the current project directory)
 - `3` — deny
 - Any other text — deny with your text as the reason sent to Claude
 
@@ -194,6 +194,8 @@ Send these exact messages in Discord:
 - Free-text replies sent to Claude's terminal
 - Recommended action summaries in plain English
 - Idle/task-complete messages include terminal context from the current Claude screen
+- Terminal context strips trailing blank lines before truncation
+- Terminal context preserves the last `❯ ` prompt anchor at the top when truncating
 - Terminal context favors the most recent visible output
 - Exact `status` command in Discord returns the current visible Claude screen on demand
 - Exact `gitstatus` and `gitlog` commands in Discord return safe repo status output on demand
