@@ -197,6 +197,7 @@ Send these exact messages in Discord:
 - Idle/task-complete messages include terminal context from the current Claude screen
 - Terminal context strips trailing blank lines before truncation
 - Terminal context preserves the last `❯ ` prompt anchor at the top when truncating
+- Terminal context budget is 1600 characters (up from 1200)
 - Terminal context favors the most recent visible output
 - Exact `status` command in Discord returns the current visible Claude screen on demand
 - Exact `gitstatus` and `gitlog` commands in Discord return safe repo status output on demand
