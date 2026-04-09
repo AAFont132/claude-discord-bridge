@@ -100,7 +100,7 @@ function truncate(text, maxLen) {
 
 function formatTerminal(terminal) {
   if (!terminal) return "";
-  const MAX_CHARS = 1200;
+  const MAX_CHARS = 1600;
   // Strip trailing blank lines before truncation
   const raw = terminal.replace(/\n+$/, "");
   const allLines = raw.split("\n");
