@@ -201,6 +201,7 @@ Send these exact messages in Discord:
 - Terminal context favors the most recent visible output
 - Exact `status` command in Discord returns the current visible Claude screen on demand
 - Exact `gitstatus` and `gitlog` commands in Discord return safe repo status output on demand
+- Long bridge messages that exceed Discord's limit are split into numbered chunks with a plain-text suffix like `(1/2)`, `(2/2)`
 - Stray numeric replies like `1`, `2`, or `3` are blocked when no bridge prompt is pending
 - Copy-friendly formatting (code blocks)
 - Fail-closed: timeouts and failures default to deny/wait
