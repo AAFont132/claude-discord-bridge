@@ -225,7 +225,7 @@ Send these exact messages in Discord:
 |---------|-------------|
 | Bridge not running | Permission hooks deny. Other hooks silently continue. |
 | Discord down | Permission hooks deny with error. Notifications lost. |
-| No reply (timeout) | Permission hooks auto-deny after timeout. Questions just wait. |
+| No reply (timeout) | Permission hooks auto-deny after timeout and notify with the tool name (e.g., "Permission timed out — Bash was denied"). Questions just wait. |
 | Bot crashes | Permission hooks deny. Claude waits for local terminal input. |
 | Wrong tmux session | Bot refuses to start. |
 
