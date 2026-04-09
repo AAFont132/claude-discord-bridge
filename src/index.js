@@ -82,8 +82,8 @@ function handleReply(text) {
 
       if (toolName === "Bash" && input.command) {
         ruleContent = input.command;
-      } else if ((toolName === "Read" || toolName === "Edit" || toolName === "Write") && input.file_path) {
-        ruleContent = input.file_path;
+      } else if (toolName === "Read" || toolName === "Edit" || toolName === "Write") {
+        ruleContent = hook?.cwd ? hook.cwd + "/*" : "*";
       }
 
       decision = {
