@@ -103,16 +103,29 @@ function formatTerminal(terminal) {
   const MAX_CHARS = 1200;
   // Strip trailing blank lines before truncation
   const raw = terminal.replace(/\n+$/, "");
-  const lines = raw.split("\n");
+  const allLines = raw.split("\n");
+  // Anchor from the last user-prompt line if one exists
+  let anchorIdx = -1;
+  for (let i = allLines.length - 1; i >= 0; i--) {
+    if (allLines[i].startsWith("❯ ")) { anchorIdx = i; break; }
+  }
+  const lines = anchorIdx >= 0 ? allLines.slice(anchorIdx) : allLines;
+  const hasAnchor = anchorIdx >= 0 && lines.length > 1;
+  // Reserve the anchor prompt line so it is never dropped
+  const anchorLine = hasAnchor ? lines[0] : null;
+  const anchorCost = anchorLine ? anchorLine.length + 1 : 0; // +1 for "\n" separator
+  const tailLines = hasAnchor ? lines.slice(1) : lines;
+  const budget = Math.max(0, MAX_CHARS - anchorCost);
   const kept = [];
   let total = 0;
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const added = (kept.length > 0 ? 1 : 0) + lines[i].length; // 1 for "\n" separator
-    if (total + added > MAX_CHARS) break;
-    kept.push(lines[i]);
+  for (let i = tailLines.length - 1; i >= 0; i--) {
+    const added = (kept.length > 0 ? 1 : 0) + tailLines[i].length;
+    if (total + added > budget) break;
+    kept.push(tailLines[i]);
     total += added;
   }
   kept.reverse();
+  if (anchorLine) kept.unshift(anchorLine);
   const trimmed = kept.join("\n");
   return `\n**Terminal context:**\n\`\`\`\n${trimmed}\n\`\`\``;
 }
