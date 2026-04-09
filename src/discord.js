@@ -50,6 +50,10 @@ async function sendMessage(text) {
   if (!channel) throw new Error("Discord not connected");
 
   const chunks = splitMessage(text, 1900);
+  if (chunks.length > 1) {
+    for (let i = 0; i < chunks.length; i++)
+      chunks[i] += `\n(${i + 1}/${chunks.length})`;
+  }
   for (const chunk of chunks) {
     await channel.send(chunk);
   }
