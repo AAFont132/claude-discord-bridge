@@ -156,7 +156,7 @@ And in Discord, the bot posts: **Bridge online**
 
 When Claude needs tool approval, you'll see a message like:
 
-> **Claude needs approval**
+> **Claude needs approval** (expires in 5 min)
 > **Tool:** Bash
 > **Command:** `git push origin main`
 > **Recommended:** Pushes code to the remote repo. Approve if you've verified the changes.
@@ -188,6 +188,7 @@ Send these exact messages in Discord:
 ## V1 features
 
 - Permission prompt relay with allow once / session-scoped allow / deny from Discord
+- Permission prompts show the timeout window in the header (e.g., expires in 5 min)
 - Question and plan-review relay
 - Idle/task-complete notifications with response summary
 - Numbered choice support
