@@ -1,7 +1,7 @@
 const { recommend } = require("./recommend");
 
 // Format a permission prompt for Discord
-function formatPermissionPrompt(hookData, terminal) {
+function formatPermissionPrompt(hookData, terminal, { timeoutSec } = {}) {
   const tool = hookData.tool_name || "Unknown tool";
   const input = hookData.tool_input || {};
   const project = projectName(hookData.cwd);
@@ -22,7 +22,7 @@ function formatPermissionPrompt(hookData, terminal) {
   const terminalBlock = formatTerminal(terminal);
 
   return [
-    `\u23f3 **Claude needs approval**\n`,
+    `\u23f3 **Claude needs approval**${timeoutSec ? ` (expires in ${Math.round(timeoutSec / 60)} min)` : ""}\n`,
     `**Tool:** ${tool}`,
     `**Project:** ${project}\n`,
     inputSummary,

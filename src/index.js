@@ -144,7 +144,7 @@ async function main() {
   const app = createServer({
     // Permission prompts: BLOCK until Discord reply or timeout
     onPermission: async (hook, terminal) => {
-      const msg = formatPermissionPrompt(hook, terminal);
+      const msg = formatPermissionPrompt(hook, terminal, { timeoutSec: TIMEOUT_MS / 1000 });
       await discord.sendMessage(msg);
 
       return new Promise((resolve) => {
