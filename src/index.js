@@ -168,7 +168,7 @@ async function main() {
             });
 
             discord
-              .sendMessage("\u23f0 Permission prompt timed out. Tool was denied.")
+              .sendMessage(`\u23f0 **Permission timed out** — **${hook.tool_name || "Unknown tool"}** was denied.`)
               .catch(() => {});
           }
         }, TIMEOUT_MS);
