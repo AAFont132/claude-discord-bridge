@@ -44,31 +44,34 @@ function formatPermissionPrompt(hookData, terminal, { timeoutSec } = {}) {
   return { embed, followUp: terminalBlock || null };
 }
 
-// Format a question or plan-review prompt for Discord
+// Format a question or plan-review prompt for Discord.
+// Returns { embed, followUp } matching the permission-prompt pattern.
 function formatQuestion(hookData, terminal) {
   const toolName = hookData.tool_name;
   const project = projectName(hookData.cwd);
 
-  let header, content;
+  let title, content;
   if (toolName === "ExitPlanMode") {
-    header = `\u23f3 **Claude has a plan ready for review**`;
+    title = "Plan Review";
     content = "Claude finished planning and wants your approval. The plan is shown in the terminal context below.";
   } else {
-    header = `\u23f3 **Claude has a question**`;
+    title = "Question";
     content = hookData.tool_input?.question || "(no question text)";
   }
 
+  const embed = {
+    color: 0x5865f2,
+    title,
+    fields: [
+      { name: "Details", value: truncate(content, 1024) },
+      { name: "Context", value: project },
+      { name: "Reply", value: "Type a number or your answer" },
+    ],
+  };
+
   const terminalBlock = formatTerminal(terminal);
 
-  return [
-    header,
-    `**Project:** ${project}\n`,
-    content,
-    terminalBlock,
-    `\nReply with a number or type your answer.`,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  return { embed, followUp: terminalBlock || null };
 }
 
 // Format an idle/task-complete notification for Discord

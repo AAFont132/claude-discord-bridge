@@ -179,8 +179,8 @@ async function main() {
     // Questions and plan reviews: notify Discord, respond to HTTP immediately
     onQuestion: async (hook, terminal) => {
       const freshTerminal = tmux.capturePane();
-      const msg = formatQuestion(hook, freshTerminal);
-      await discord.sendMessage(msg);
+      const payload = formatQuestion(hook, freshTerminal);
+      await discord.sendPermissionPrompt(payload);
     },
 
     // Task complete / idle: notify Discord
