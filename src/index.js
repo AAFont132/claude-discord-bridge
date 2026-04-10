@@ -50,7 +50,7 @@ function handleReply(text) {
     const pane = tmux.capturePane();
     const pending = pendingPermission ? "permission" : "none";
     const msg = formatStatus(pane, pending);
-    discord.sendMessage(msg).catch(() => {});
+    discord.sendPermissionPrompt(msg).catch(() => {});
     console.log("[bridge] Sent on-demand status to Discord");
     return;
   }

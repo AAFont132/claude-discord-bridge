@@ -161,18 +161,21 @@ function isChromeLine(line) {
   return false;
 }
 
-// Format an on-demand status snapshot for Discord
+// Format an on-demand status snapshot for Discord.
+// Returns { embed, followUp } matching the permission/question/idle pattern.
 function formatStatus(terminal, pendingType) {
   const hasPending = pendingType && pendingType !== "none";
   const terminalBlock = formatTerminal(terminal, 1600, { raw: true });
-  return [
-    `\ud83d\udcfa **Claude status**`,
-    `**Pending bridge prompt:** ${hasPending ? "yes" : "no"}`,
-    `**Pending type:** ${pendingType || "none"}`,
-    terminalBlock || "No terminal content available.",
-  ]
-    .filter(Boolean)
-    .join("\n");
+
+  const embed = {
+    color: 0x5865f2,
+    title: "\ud83d\udcfa Claude Status",
+    fields: [
+      { name: "Pending prompt", value: hasPending ? `Yes — ${pendingType}` : "No" },
+    ],
+  };
+
+  return { embed, followUp: terminalBlock || null };
 }
 
 module.exports = { formatPermissionPrompt, formatQuestion, formatIdle, formatStatus };
