@@ -186,21 +186,22 @@ async function main() {
     // Task complete / idle: notify Discord
     onStop: async (hook, terminal) => {
       const freshTerminal = tmux.capturePane();
-      const msg = formatIdle(hook, freshTerminal);
+      const payload = formatIdle(hook, freshTerminal);
       const now = Date.now();
+      const dedupeKey = JSON.stringify(payload.embed);
 
       if (
-        lastStopMessage === msg &&
+        lastStopMessage === dedupeKey &&
         now - lastStopAt < STOP_DEDUPE_WINDOW_MS
       ) {
         console.log("[bridge] Skipping duplicate Stop notification");
         return;
       }
 
-      lastStopMessage = msg;
+      lastStopMessage = dedupeKey;
       lastStopAt = now;
 
-      await discord.sendMessage(msg);
+      await discord.sendPermissionPrompt(payload);
     },
   });
 

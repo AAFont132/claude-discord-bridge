@@ -74,26 +74,27 @@ function formatQuestion(hookData, terminal) {
   return { embed, followUp: terminalBlock || null };
 }
 
-// Format an idle/task-complete notification for Discord
+// Format an idle/task-complete notification for Discord.
+// Returns { embed, followUp } matching the permission/question pattern.
 function formatIdle(hookData, terminal) {
   const project = projectName(hookData.cwd);
   const message = hookData.assistant_message || "";
 
-  // Truncate Claude's last response to a readable summary
   const summary = truncate(message, 600);
+
+  const embed = {
+    color: 0x57f287,
+    title: "Task Complete",
+    fields: [
+      { name: "Summary", value: summary || "Claude finished and is waiting for input." },
+      { name: "Context", value: project },
+      { name: "Reply", value: "Send your next instruction, or ignore until you\u2019re back" },
+    ],
+  };
+
   const terminalBlock = formatTerminal(terminal);
 
-  return [
-    `\u2705 **Claude is idle**`,
-    `**Project:** ${project}\n`,
-    summary
-      ? `**Last response:**\n\`\`\`\n${summary}\n\`\`\``
-      : "Claude finished and is waiting for input.",
-    terminalBlock,
-    `\nReply with your next instruction, or ignore until you\u2019re back.`,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  return { embed, followUp: terminalBlock || null };
 }
 
 // --- helpers ---
