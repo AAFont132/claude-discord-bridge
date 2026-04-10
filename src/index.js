@@ -60,7 +60,8 @@ function handleReply(text) {
   if (gitCommands[text]) {
     const cwd = process.env.CLAUDE_PROJECT_DIR || process.cwd();
     const output = tmux.runGitCommand(gitCommands[text], cwd);
-    const msg = `\ud83d\udcca **git ${gitCommands[text]}**\n\`\`\`\n${output}\n\`\`\``;
+    const capped = output.length > 1800 ? output.slice(0, 1800) + "\n... (truncated)" : output;
+    const msg = `\ud83d\udcca **git ${gitCommands[text]}**\n\`\`\`\n${capped}\n\`\`\``;
     discord.sendMessage(msg).catch(() => {});
     console.log(`[bridge] Sent ${text} result to Discord`);
     return;
