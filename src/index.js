@@ -144,8 +144,9 @@ async function main() {
   const app = createServer({
     // Permission prompts: BLOCK until Discord reply or timeout
     onPermission: async (hook, terminal) => {
-      const msg = formatPermissionPrompt(hook, terminal, { timeoutSec: TIMEOUT_MS / 1000 });
-      await discord.sendMessage(msg);
+      const freshTerminal = tmux.capturePane();
+      const payload = formatPermissionPrompt(hook, freshTerminal, { timeoutSec: TIMEOUT_MS / 1000 });
+      await discord.sendPermissionPrompt(payload);
 
       return new Promise((resolve) => {
         const thisRequest = { resolve, hook };
@@ -177,13 +178,15 @@ async function main() {
 
     // Questions and plan reviews: notify Discord, respond to HTTP immediately
     onQuestion: async (hook, terminal) => {
-      const msg = formatQuestion(hook, terminal);
+      const freshTerminal = tmux.capturePane();
+      const msg = formatQuestion(hook, freshTerminal);
       await discord.sendMessage(msg);
     },
 
     // Task complete / idle: notify Discord
     onStop: async (hook, terminal) => {
-      const msg = formatIdle(hook, terminal);
+      const freshTerminal = tmux.capturePane();
+      const msg = formatIdle(hook, freshTerminal);
       const now = Date.now();
 
       if (

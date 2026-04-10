@@ -1,39 +1,49 @@
 const { recommend } = require("./recommend");
 
-// Format a permission prompt for Discord
+// Format a permission prompt for Discord.
+// Returns { embed, followUp } where embed is a Discord embed object
+// and followUp is an optional plain-text terminal context string.
 function formatPermissionPrompt(hookData, terminal, { timeoutSec } = {}) {
   const tool = hookData.tool_name || "Unknown tool";
   const input = hookData.tool_input || {};
   const project = projectName(hookData.cwd);
 
   // Build a readable summary of what the tool wants to do
-  let inputSummary = "";
+  let inputLabel, inputValue;
   if (tool === "Bash") {
-    inputSummary = `**Command:**\n\`\`\`\n${truncate(input.command || "(empty)", 500)}\n\`\`\``;
+    inputLabel = "Command";
+    inputValue = `\`\`\`\n${truncate(input.command || "(empty)", 500)}\n\`\`\``;
   } else if (tool === "Edit" || tool === "Write" || tool === "Read") {
-    inputSummary = `**File:** \`${input.file_path || "(unknown)"}\``;
+    inputLabel = "File";
+    inputValue = `\`${input.file_path || "(unknown)"}\``;
   } else if (tool === "Agent") {
-    inputSummary = `**Task:** ${truncate(input.prompt || input.description || "(no description)", 400)}`;
+    inputLabel = "Task";
+    inputValue = truncate(input.prompt || input.description || "(no description)", 400);
   } else {
-    inputSummary = `**Input:**\n\`\`\`json\n${truncate(JSON.stringify(input, null, 2), 500)}\n\`\`\``;
+    inputLabel = "Input";
+    inputValue = `\`\`\`json\n${truncate(JSON.stringify(input, null, 2), 500)}\n\`\`\``;
   }
 
   const rec = recommend(tool, input);
-  const terminalBlock = formatTerminal(terminal);
 
-  return [
-    `\u23f3 **Claude needs approval**${timeoutSec ? ` (expires in ${Math.round(timeoutSec / 60)} min)` : ""}\n`,
-    `**Tool:** ${tool}`,
-    `**Project:** ${project}\n`,
-    inputSummary,
-    terminalBlock,
-    `\n\ud83d\udca1 **Recommended:** ${rec}\n`,
-    `**Reply with:**`,
-    `\`1\` \u2192 Allow once  \u00b7  \`2\` \u2192 Always allow  \u00b7  \`3\` \u2192 Deny`,
-    `Or type feedback (denies + sends your reason to Claude)`,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const embed = {
+    color: 0xffa500,
+    title: "\u23f3 Claude needs approval",
+    description: timeoutSec ? `Expires in ${Math.round(timeoutSec / 60)} min` : undefined,
+    fields: [
+      { name: "Tool", value: tool, inline: true },
+      { name: "Project", value: project, inline: true },
+      { name: inputLabel, value: inputValue },
+      { name: "Recommended", value: rec },
+    ],
+    footer: {
+      text: "1 \u2192 Allow once \u00b7 2 \u2192 Always allow \u00b7 3 \u2192 Deny \u00b7 or type feedback",
+    },
+  };
+
+  const terminalBlock = formatTerminal(terminal, 6000, { skipAnchor: true });
+
+  return { embed, followUp: terminalBlock || null };
 }
 
 // Format a question or plan-review prompt for Discord
@@ -98,16 +108,18 @@ function truncate(text, maxLen) {
   return text.slice(0, maxLen) + "\n... (truncated)";
 }
 
-function formatTerminal(terminal) {
+function formatTerminal(terminal, maxChars, { skipAnchor } = {}) {
   if (!terminal) return "";
-  const MAX_CHARS = 1600;
+  const MAX_CHARS = maxChars || 1600;
   // Strip trailing blank lines before truncation
   const raw = terminal.replace(/\n+$/, "");
-  const allLines = raw.split("\n");
+  const allLines = raw.split("\n").filter((line) => !isChromeLine(line));
   // Anchor from the last user-prompt line if one exists
   let anchorIdx = -1;
-  for (let i = allLines.length - 1; i >= 0; i--) {
-    if (allLines[i].startsWith("❯ ")) { anchorIdx = i; break; }
+  if (!skipAnchor) {
+    for (let i = allLines.length - 1; i >= 0; i--) {
+      if (/^❯ \S/.test(allLines[i])) { anchorIdx = i; break; }
+    }
   }
   const lines = anchorIdx >= 0 ? allLines.slice(anchorIdx) : allLines;
   const hasAnchor = anchorIdx >= 0 && lines.length > 1;
@@ -128,6 +140,23 @@ function formatTerminal(terminal) {
   if (anchorLine) kept.unshift(anchorLine);
   const trimmed = kept.join("\n");
   return `\n**Terminal context:**\n\`\`\`\n${trimmed}\n\`\`\``;
+}
+
+// Filter low-value UI chrome lines from terminal output.
+// Keeps real content: commands, tool output, errors, approval choices.
+function isChromeLine(line) {
+  const trimmed = line.trim();
+  // Empty prompt with no command (but keep "❯ <command>")
+  if (trimmed === "❯") return true;
+  // Spinner/status lines (✽, ✻, ✢, ✶ prefixes)
+  if (/^[✽✻✢✶]/.test(trimmed)) return true;
+  // Tip lines
+  if (trimmed.startsWith("⎿ Tip:")) return true;
+  // Horizontal separators (lines of mostly ─)
+  if (/^─{4,}$/.test(trimmed)) return true;
+  // Footer hint lines (e.g. "esc to interrupt", "Esc to cancel · Tab to amend · ctrl+e to explain")
+  if (/^esc\s+to\s+/i.test(trimmed)) return true;
+  return false;
 }
 
 // Format an on-demand status snapshot for Discord

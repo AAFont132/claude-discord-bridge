@@ -59,6 +59,15 @@ async function sendMessage(text) {
   }
 }
 
+// Send a structured permission prompt (embed + optional plain-text follow-up)
+async function sendPermissionPrompt({ embed, followUp }) {
+  if (!channel) throw new Error("Discord not connected");
+  await channel.send({ embeds: [embed] });
+  if (followUp) {
+    await sendMessage(followUp);
+  }
+}
+
 // Register a callback for when the authorized user sends a message
 function onReply(callback) {
   onMessageCallback = callback;
@@ -90,4 +99,4 @@ function splitMessage(text, maxLen) {
   return chunks;
 }
 
-module.exports = { start, sendMessage, onReply, destroy };
+module.exports = { start, sendMessage, sendPermissionPrompt, onReply, destroy };
