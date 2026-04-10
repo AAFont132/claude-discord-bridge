@@ -26,19 +26,17 @@ function formatPermissionPrompt(hookData, terminal, { timeoutSec } = {}) {
 
   const rec = recommend(tool, input);
 
+  const context = [project, rec, timeoutSec ? `Expires in ${Math.round(timeoutSec / 60)} min` : null].filter(Boolean).join(" · ");
+
   const embed = {
     color: 0xffa500,
-    title: "\u23f3 Claude needs approval",
-    description: timeoutSec ? `Expires in ${Math.round(timeoutSec / 60)} min` : undefined,
+    title: "Permission Request",
     fields: [
-      { name: "Tool", value: tool, inline: true },
-      { name: "Project", value: project, inline: true },
-      { name: inputLabel, value: inputValue },
-      { name: "Recommended", value: rec },
+      { name: "Action", value: tool },
+      { name: "Request", value: inputValue },
+      { name: "Context", value: context },
+      { name: "Choices", value: "1 \u2192 Allow once \u00b7 2 \u2192 Always allow \u00b7 3 \u2192 Deny \u00b7 or type feedback" },
     ],
-    footer: {
-      text: "1 \u2192 Allow once \u00b7 2 \u2192 Always allow \u00b7 3 \u2192 Deny \u00b7 or type feedback",
-    },
   };
 
   const terminalBlock = formatTerminal(terminal, 6000, { skipAnchor: true });
