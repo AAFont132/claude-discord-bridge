@@ -247,3 +247,49 @@ Send these exact messages in Discord:
 **I replied `1`, `2`, or `3` in Discord and nothing happened** — If there is no pending permission/question prompt, the bot will not inject stray numeric replies into Claude. Wait for a new bridge prompt, or send `status` to see the current screen.
 
 **"Not authorized" in Discord** — Only the user matching `DISCORD_USER_ID` can respond. Check the ID.
+
+## Remote access
+
+The bridge can be managed remotely from a phone using Tailscale + Windows OpenSSH + WSL.
+
+### Setup
+
+- Home machine: A6
+- Tailscale IP: 100.98.222.112
+- SSH user: ariel
+- SSH port: 22
+
+### Workflow
+
+1. On iPhone, open Termius and connect to `100.98.222.112` over Tailscale
+2. Log in with your Windows password
+3. Enter WSL and navigate to the project:
+   ```bash
+   wsl
+   cd ~/projects/claude-discord-bridge
+   ```
+
+### Verify the bridge is running
+
+```bash
+curl -I http://127.0.0.1:8787
+```
+
+A healthy bridge returns `HTTP/1.1 404 Not Found` (the root path has no route, but Express is listening).
+
+### Start or restart the bridge
+
+```bash
+cd ~/projects/claude-discord-bridge && pkill -f "node src/index.js" || true; nohup node src/index.js >/tmp/bridge.log 2>&1 & sleep 2 && curl -I http://127.0.0.1:8787
+```
+
+If verification fails, check the log:
+
+```bash
+tail -n 50 /tmp/bridge.log
+```
+
+### Known issues
+
+- Password login is the current working path.
+- SSH key login from iPhone Termius is deferred for later cleanup. Root issue found so far: Termius offered-key fingerprint did not match the stored Windows authorized-key fingerprint.
