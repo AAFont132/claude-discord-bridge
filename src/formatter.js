@@ -110,15 +110,15 @@ function truncate(text, maxLen) {
   return text.slice(0, maxLen) + "\n... (truncated)";
 }
 
-function formatTerminal(terminal, maxChars, { skipAnchor } = {}) {
+function formatTerminal(terminal, maxChars, { skipAnchor, raw } = {}) {
   if (!terminal) return "";
   const MAX_CHARS = maxChars || 1600;
   // Strip trailing blank lines before truncation
-  const raw = terminal.replace(/\n+$/, "");
-  const allLines = raw.split("\n").filter((line) => !isChromeLine(line));
+  const cleaned = terminal.replace(/\n+$/, "");
+  const allLines = raw ? cleaned.split("\n") : cleaned.split("\n").filter((line) => !isChromeLine(line));
   // Anchor from the last user-prompt line if one exists
   let anchorIdx = -1;
-  if (!skipAnchor) {
+  if (!skipAnchor && !raw) {
     for (let i = allLines.length - 1; i >= 0; i--) {
       if (/^❯ \S/.test(allLines[i])) { anchorIdx = i; break; }
     }
@@ -164,7 +164,7 @@ function isChromeLine(line) {
 // Format an on-demand status snapshot for Discord
 function formatStatus(terminal, pendingType) {
   const hasPending = pendingType && pendingType !== "none";
-  const terminalBlock = formatTerminal(terminal);
+  const terminalBlock = formatTerminal(terminal, 1600, { raw: true });
   return [
     `\ud83d\udcfa **Claude status**`,
     `**Pending bridge prompt:** ${hasPending ? "yes" : "no"}`,
